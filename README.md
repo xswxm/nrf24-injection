@@ -17,9 +17,6 @@ sudo pip install -U platformio
 | Logitech Mice | Yes | Yes |
 
 
-
-[Google](http://google.com/ "DDDDDDDD")
-
 ### How to Use
 ```sh
 sudo python app.py
