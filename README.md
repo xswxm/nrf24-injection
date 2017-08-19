@@ -22,7 +22,7 @@ sudo pip install -U platformio
 sudo python app.py
 ```
 
-### How to Use Attack Injection
+### How to Use Launch Attack
 ```sh
 # Please check attacking rules in 'devices/*.py' for details
 # Further infomation will added to here once I have time
@@ -34,6 +34,8 @@ sudo python app.py
 <RLS>
 # Send 'Windows + r' key combination
 <WIN+r>
+# Send 'Ctrl + Alt + Delete' key combination
+<CTRL+ALT+DEL>
 # Open Powershell and then open Caculator
 <RLS><WIN+r><RLS><SLP(500)><RLS>powershell<ENTER><RLS><SLP(500)><RLS>calc<ENTER><RLS>
 ```
