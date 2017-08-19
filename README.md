@@ -22,7 +22,7 @@ sudo pip install -U platformio
 sudo python app.py
 ```
 
-### How to Use Launch Attack
+### How to Use Launch Attacks
 ```sh
 # Please check attacking rules in 'devices/*.py' for details
 # Further infomation will added to here once I have time
@@ -36,7 +36,7 @@ sudo python app.py
 <WIN+r>
 # Send 'Ctrl + Alt + Delete' key combination
 <CTRL+ALT+DEL>
-# Open Powershell and then open Caculator
+# Open Powershell and then open Caculator form powershell with Windows computers
 <RLS><WIN+r><RLS><SLP(500)><RLS>powershell<ENTER><RLS><SLP(500)><RLS>calc<ENTER><RLS>
 ```
 
