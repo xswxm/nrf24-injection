@@ -30,6 +30,9 @@ sudo python app.py
 <SLP(100)>
 # Move mouse by 100*100 and press Left, Right and Middle buttons
 <MOV(100,100,LMR)>
+# Release the buttons for mice, you can send another MOV command without any buttons
+<MOV(0,0)>
+<MOV()>
 # Send keystrokes to release all keys
 <RLS>
 # Send 'Windows + r' key combination
