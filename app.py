@@ -3,121 +3,71 @@
   Reference: http://www.ipsum-generator.com
 '''
 
-import curses
 from tools import Scanner, Sniffer, Attacker
 from lib import common
+from lib.common import *
 common.init_args('./app.py')
 common.parse_and_init()
-
-# Standard startup. Probably don't need to change this
-stdscr = curses.initscr()
-curses.cbreak()
-curses.noecho()
-stdscr.keypad(1)
-
-# Standard shutdown. Probably don't need to change this.
-def exit_screen():
-  curses.nocbreak()
-  stdscr.keypad(0)
-  curses.echo()
-  curses.endwin()
-
-def refresh_screen(msg):
-  global commands
-  notice = 'Commond (<m: main menu>, <b: back>, <q: quit>): '
-  stdscr.clear()
-  for i in range(len(msg)):
-    # stdscr.addstr(i, 0, str(msg[i]))
-    stdscr.addstr(i, 0, msg[i])
-    # stdscr.move(0, 0)
-  stdscr.addstr(i+1, 0, '')
-  stdscr.addstr(i+2, 0, notice+commands)
-  stdscr.refresh()
+common.init_screen()
+common.init_commands()
 
 def scan():
-  global scanner, selection, selection_limit, task
-  if not scanner.isAlive():
-    scanner = Scanner()
-    scanner.start()
+  global selection, task
+  # Update scanner's status
+  if not common.scanner.isAlive():
+    common.scanner = Scanner()
+    common.scanner.start()
   else:
-    scanner.resume()
-  devices = scanner.get_devices()
-  selection_limit = len(devices)
-  msg = []
-  msg.append('----------------------------------SCAN DEVICES----------------------------------')
-  msg.append('{0:<6}{1:<18}{2:<10}{3:<16}{4:<16}{5:<14}'.format(
-    'No.', 'Address', 'Channel', 'Vender', 'Model', 'Status'))
-  for i in range(len(devices)):
-    msg.append('{0:<6}{1:<18}{2:<10}{3:<16}{4:<16}{5:<14}'.format(
-      i+1, ':'.join('{:02X}'.format(b) for b in devices[i].address),
-      devices[i].channel, devices[i].vender, devices[i].model, devices[i].status))
-    # msg.append('{0:<6}{1:<18}{2:<10}{3:<16}{4:<16}{5:<14}'.format(
-    #   i+1, ':'.join('{:02X}'.format(b) for b in devices[i].address),
-    #   devices[i].channel, devices[i].vender, devices[i].model, devices[i].status))
+    common.scanner.resume()
+  # Refresh devices
+  if common.scanner.records != []:
+    # Acquire the address, channel, and payload from the first record
+    address = common.scanner.records[0][0]
+    channel = common.scanner.records[0][1]
+    payload = common.scanner.records[0][2]
+    # Remove the first record
+    del common.scanner.records[0]
+    # Add a new device or update the device
+    common.add_device(address, channel, payload)
+  else:
+    common.update_scanner_msg()
+  # Update selection and task
   if selection != None:
     if selection > 0:
       # scanner.join()
-      scanner.pause()
-      global device, deviceID
-      deviceID = selection-1
-      device = devices[deviceID]
+      common.scanner.pause()
+      common.deviceID = selection-1
       task = 'tasks'
     selection = None
-  return msg
 
 def tasks():
-  global selection, selection_limit, task, device
-  msg = []
-  msg.append('----------------------------------SELECT TASKS----------------------------------')
-  msg.append('You selected: {0} ({1} {2})'.format(
-    ':'.join('{:02X}'.format(b) for b in device.address), 
-    device.vender, device.model))
-  selection_limit = 0
-  if device.model != None:
-    # selection enabled
-    selection_limit = 2
-  else:
-    msg.append('')
-    msg.append('* Tasks is not avaliable right now because the device has not been located yet.')
-    msg.append('* It may take minites to locate the device, please wait...')
-    msg.append('')
-    global matcher
-    if not matcher.isAlive():
-      matcher = Sniffer(device.address)
-      matcher.start()
+  global selection, task
+  device = common.devices[common.deviceID]
+  # Enable a sniffer to capture packets to varify the device
+  if device.model == None:
+    # Enable matcher
+    if not common.matcher.isAlive():
+      common.matcher = Sniffer(device.address)
+      common.matcher.start()
     else:
-      matcher.resume(device.address)
-    payload = matcher.payload
-    if payload != None and len(payload) > 0:
-      from devices.device import match_device
-      payloads = []
-      payloads = device.payloads
-      l = len(payloads)
-      #### Test Code For Monitoring payloads
-
-      msg.append('Payload: {0}'.format(':'.join('{:02X}'.format(b) for b in payload)))
-      flag = 0
-      for p in payloads:
-        msg.append('{0}'.format(':'.join('{:02X}'.format(b) for b in p)))
-        flag += 1
-        if flag > 10: break
-      msg.append('Number of total payloads: '+ str(l))
-
-      ####
-      if l == 0 or (l > 0 and device.payloads[-1] != payload):
-        payloads.append(payload)
-        d = None
-        d = match_device(device.address, device.channel, payloads)
-        device = d
-        if d.model != None:
-          # Renew devices list
-          global scanner, deviceID
-          scanner.devices[deviceID] = d
-          # Pause matcher
-          matcher.pause()
-  msg.append('{0:<6}{1}'.format('No.', 'Task'))
-  msg.append('{0:<6}{1}'.format('1', 'Sniff and record packets.'))
-  msg.append('{0:<6}{1}'.format('2', 'Launch attacks.'))
+      common.matcher.resume(device.address)
+    # Refresh devices
+    if common.matcher.records != []:
+      # Acquire the address, channel, and payload from the first record
+      address = device.address
+      channel = common.matcher.records[0][0]
+      payload = common.matcher.records[0][1]
+      # Remove the first record
+      del common.matcher.records[0]
+      # Add a new device or update the device
+      common.update_device(address, channel, payload)
+    else:
+      common.update_matcher_msg()
+  # Enable tasks
+  # There is a bug that this following code will be executed everytime and require to be fixed later
+  else:
+    common.update_tasks_msg()
+  # Update selection
   if selection != None:
     if selection == 1:
       task = 'sniff'
@@ -126,54 +76,43 @@ def tasks():
     else:
       task = 'scan'
     selection = None
-  return msg
 
 def sniff():
-  global sniffer, selection, selection_limit, task, device
-  selection_limit = 0
-  if not sniffer.isAlive():
-    sniffer = Sniffer(device.address, device.moduler)
-    sniffer.start()
+  global selection, task
+  device = common.devices[common.deviceID]
+  if not common.sniffer.isAlive():
+    common.sniffer = Sniffer(device.address)
+    common.sniffer.start()
   else:
-    sniffer.resume(device.address, device.moduler)
-  msg = []
-  msg.append('----------------------------------SNIFF PACKETS---------------------------------')
-  msg.append('{0:<10}{1} {2}'.format('Device: ', device.vender, device.model))
-  msg.append('{0:<10}{1}'.format('Address: ', ':'.join('{:02X}'.format(b) for b in device.address)))
-  for m in sniffer.get_msg():
-    msg.append(m)
+    common.sniffer.resume(device.address)
+  # Update sniffing results and Display
+  common.update_sniffer_msg()
+  # Update selection
   if selection != None:
-    sniffer.pause()
+    common.sniffer.pause()
     if selection == 0:
       task = 'scan'
     else:
       task = 'tasks'
     selection = None
-  return msg
 
 def attack():
-  global attacker, selection, selection_limit, task, device
-  selection_limit = 0
-  if not attacker.isAlive():
-    attacker = Attacker(device)
-    attacker.start()
+  global selection, task
+  device = common.devices[common.deviceID]
+  if not common.attacker.isAlive():
+    common.attacker = Attacker(device.address)
+    common.attacker.start()
   else:
-    attacker.resume(device)
-  msg = []
-  msg.append('----------------------------------LAUNCH ATTACK---------------------------------')
-  msg.append('{0:<10}{1} {2}'.format('Device: ', device.vender, device.model))
-  msg.append('{0:<10}{1}'.format('Address: ', ':'.join('{:02X}'.format(b) for b in device.address)))
-  msg.append('')
-  for m in attacker.get_msg():
-    msg.append(m)
+    common.attacker.resume(device.address)
+  # Update attacking results and Display
+  common.update_attacker_msg()
   if selection != None:
-    attacker.pause()
+    common.attacker.pause()
     if selection == 0:
       task = 'scan'
     else:
       task = 'tasks'
     selection = None
-  return msg
 
 import threading
 class myThread(threading.Thread):
@@ -186,44 +125,34 @@ class myThread(threading.Thread):
     while not self._stopevent.isSet():
       global task
       if task == 'scan':
-        msg = scan()
+        scan()
       elif task == 'tasks':
-        msg = tasks()
+        tasks()
       elif task == 'sniff':
-        msg = sniff()
+        sniff()
       elif task == 'attack':
-        msg = attack()
-      refresh_screen(msg)
+        attack()
+      # self._stopevent.wait(0.02)
   def join(self, timeout = None):
     while self.isAlive():
       self._stopevent.set()
       threading.Thread.join(self, timeout)
 
 
-# chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 
-#               'H', 'I', 'J', 'K', 'L', 'M', 'N', 
-#               'O', 'P', 'Q', 'R', 'S', 'T', 
-#               'U', 'V', 'W', 'X', 'Y', 'Z',
-#               'a', 'b', 'c', 'd', 'e', 'f', 'g', 
-#               'h', 'i', 'j', 'k', 'l', 'm', 'n', 
-#               'o', 'p', 'q', 'r', 's', 't', 
-#               'u', 'v', 'w', 'x', 'y', 'z',
-#               '+', '-', ',', ' ',
-#               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-# chars_spec = [curses.KEY_BACKSPACE, curses.KEY_ENTER, 10, 13]
 
 def check_selection(c):
   global selection
   result = None
   if c == ord('q'):
-    global mainThread, scanner, matcher, sniffer, attacker
+    common.save_commonds()
+    global mainThread
     # Stop main thread
     mainThread.join()
-    attacker.join()
-    sniffer.join()
-    matcher.join()
-    scanner.join()
-    exit_screen()
+    common.attacker.join()
+    common.sniffer.join()
+    common.matcher.join()
+    common.scanner.join()
+    common.exit_screen()
     exit(0)
   if c == ord('b'):
     result = -1
@@ -233,51 +162,73 @@ def check_selection(c):
     result = c-48
   elif c >= 97 and c <= 122:
     result = c-87
-  if result > selection_limit:
+  if result > common.selection_limit:
     result = None
   selection = result
+  return selection
 
+import curses
 if __name__ == "__main__":
-  task = 'scan'
-  commands = ''
-  scanner = Scanner()
-  sniffer = Sniffer()
-  matcher = Sniffer()
-  attacker = Attacker()
-  device = None
-  deviceID = None
-  selection = None
-  selection_limit = 0
+  task = 'scan'         # Task
+  selection = None      # Selection
+  common.scanner = Scanner()
+  common.sniffer = Sniffer()
+  common.matcher = Sniffer()
+  common.attacker = Attacker()
   mainThread = myThread()
   mainThread.start()
   while True:
-    c = stdscr.getch()
+    c = common.stdscr.getch()
+    commandsID = commandsID
+    command = common.command
+    commands = common.commands
+    stdscrID = common.stdscrID
     try:
-      if c == curses.KEY_BACKSPACE:
-        commands = commands[:-1]
-      elif c == curses.KEY_ENTER  or c == 10 or c == 13:
-        if len(commands) > 0:
-          c = ord(commands[-1])
-          check_selection(c)
-          if attacker.isAlive() and attacker._flag.isSet():
-            attacker.set_commands(commands)
-        commands = ''
+      if c == curses.KEY_UP:
+        if commandsID > 0:
+          commandsID -= 1
+          command = commands[commandsID]
+          stdscrID = len(command)
+        else:
+          stdscrID = 0
+      elif c == curses.KEY_DOWN:
+        if commandsID < len(commands)-1:
+          commandsID += 1
+          command = commands[commandsID]
+        stdscrID = len(command)
+      elif c == curses.KEY_LEFT:
+        if stdscrID > 0: stdscrID -= 1
+      elif c == curses.KEY_RIGHT:
+        if stdscrID < len(command): stdscrID += 1
+      # Pressed BACKSPACE
+      elif c == curses.KEY_BACKSPACE:
+        command = command[:stdscrID-1]+command[stdscrID:]
+        commands[-1] = common.command
+        if stdscrID > 0: stdscrID -= 1
+      # Pressed ENTER
+      elif (c == curses.KEY_ENTER  or c == 10 or c == 13) and len(command) > 0:
+        c = ord(command[-1])
+        if check_selection(c) == None:
+          if common.attacker.isAlive() and common.attacker._flag.isSet():
+            common.attacker.set_command(command)
+            # Update commands if it is new
+            if len(commands) < 2 or command != commands[-2]:
+              # Update the last command in commands
+              commands[-1] = common.command
+              # Add an empty command to the commands list
+              commands.append('')
+        # Update commandsID
+        commandsID = len(commands)-1
+        # Renew command
+        command = ''
+        stdscrID = 0
       else:
-        commands += chr(c)
+        command = command[:stdscrID]+chr(c)+command[stdscrID:]
+        commands[-1] = common.command
+        stdscrID += 1
     except Exception as e:
-      commands = str(e)
-    # if chr(c) in chars or c in chars_spec:
-    #   if c == curses.KEY_BACKSPACE:
-    #     commands = commands[:-1]
-    #   elif c == curses.KEY_ENTER  or c == 10 or c == 13:
-    #     if len(commands) > 0:
-    #       c = ord(commands[-1])
-    #       check_selection(c)
-    #       if attacker.isAlive() and attacker._flag.isSet():
-    #         attacker.set_commands(commands)
-    #     commands = ''
-    #   else:
-    #     commands += chr(c)
-
-
-  
+      pass
+    commandsID = commandsID
+    common.command = command
+    common.commands = commands
+    common.stdscrID = stdscrID

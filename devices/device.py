@@ -8,9 +8,9 @@ Blog: xswxm.com
 '''
 
 class Device():
-  def __init__(self, address, channel, payloads, vender=None):
+  def __init__(self, address, channels, payloads, vender=None):
     self.address = address
-    self.channel = channel
+    self.channels = channels
     self.payloads = payloads
     self.vender = vender
     self.model = None
@@ -18,21 +18,21 @@ class Device():
 
 
 class AmazonBasics():
-  def __init__(self, address=None, channel=None, suffix=None):
+  def __init__(self, address=None, channels=None, suffix=None):
     self.address = address
     self.vender = 'Amazon'
     self.model = 'AmazonBasics'
-    self.channel = channel
+    self.channels = channels
     self.suffix = suffix
     self.status = 'Unencrypted'
     self.moduler = 'amazonbasics'
 
 class LogitechMouse():
-  def __init__(self, address=None, channel=None, prefix=None, payload_tag=None, status=None):
+  def __init__(self, address=None, channels=None, prefix=None, payload_tag=None, status=None):
     self.address = address
     self.vender = 'Logitech'
     self.model = 'Mouse'
-    self.channel = channel
+    self.channels = channels
     self.prefix = prefix
     self.payload_tag = payload_tag
     self.status = status
@@ -41,7 +41,7 @@ class LogitechMouse():
     else:
       self.moduler = None
 
-def match_amazonbasics(address, channel, payloads):
+def match_amazonbasics(address, channels, payloads):
   suffix = None
   suffix_flag = False  # To ensure at least two packets share the same suffix
   # sync_flag = False
@@ -63,11 +63,11 @@ def match_amazonbasics(address, channel, payloads):
     else:
       break
     if suffix != None and suffix_flag:
-      return AmazonBasics(address, channel, suffix)
+      return AmazonBasics(address, channels, suffix)
   return None
 
 from array import array
-def match_logitech_mouse(address, channel, payloads):
+def match_logitech_mouse(address, channels, payloads):
   prefix = None
   payload_tag = None
   prefix_flag = False  # To ensure at least two packets share the same prefix
@@ -115,7 +115,9 @@ def match_logitech_mouse(address, channel, payloads):
           #   pass
         # Ruturn None if the packet does not match the head
         else:
-          break
+          # There are exceptions, require to be investigated into
+          pass
+          # break
       # Firmware info packet
       elif l == 22:
         pass
@@ -123,7 +125,7 @@ def match_logitech_mouse(address, channel, payloads):
       else:
         break
     if prefix != None and payload_tag != None and sync_flag and prefix_flag:
-      return LogitechMouse(address, channel, prefix, payload_tag, status)
+      return LogitechMouse(address, channels, prefix, payload_tag, status)
   return None
 
 def prematch_device(payloads):
@@ -135,13 +137,13 @@ def prematch_device(payloads):
       return 'LogitechMouse?'
   return 'Checking'
 
-def match_device(address, channel, payloads):
+def match_device(address, channels, payloads):
   device = None
   if len(payloads) > 3: 
-    device = match_amazonbasics(address, channel, payloads)
+    device = match_amazonbasics(address, channels, payloads)
     if device != None: return device
-    device = match_logitech_mouse(address, channel, payloads)
+    device = match_logitech_mouse(address, channels, payloads)
     if device != None: return device
-  device = Device(address, channel, payloads)
+  device = Device(address, channels, payloads)
   device.status = prematch_device(payloads)
   return device

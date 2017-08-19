@@ -35,21 +35,6 @@ Packet explaination
   TU:     checksum
   GH:     unknown, usually are 00
   RS:     unknown, usually are 00
-
-
-Example commonds
-  L                     # Press left button
-  L+                    # Press left button, then release the button
-  LR                    # Press left and right buttons together
-  LR+R                  # Press left and right buttons together,
-                        #   then release left button and keep right button pressed
-  -2047,-2047           # Move left by 2047 and move top by 2047
-  2047,2047             # Move right by 2047 and move bottom by 2047
-  1,1,LMR               # Move right by 1 and move bottom by 1, 
-                        #   and press left, middle and right buttons
-  1,1+LMR               # Move right by 1 and move bottom by 1, 
-                        #   then press left, middle and right buttons
-
 '''
 
 result_old = [None]*9
@@ -62,7 +47,7 @@ def decode(payload):
   msg.append('{0:<16}{1:<8}{2:<8}{3:<8}{4:<8}{5:<8}{6:<8}{7:<8}{8:<8}'.
     format('Move', 'LEFT', 'RIGHT', 'MIDDLE', 'SCL_UP', 'SCL_DN', 'PREV', 'NEXT', 'SYNC'))
   result = [None]*9
-  if payload == None or len(payload) == 0:
+  if len(payload) == 0:
     result = result_old
   elif len(payload) != 10:
     if len(payload) == 22:
@@ -75,7 +60,7 @@ def decode(payload):
       result[8] = 'Yes'
     else:
       result[0] = 'No Matching decoder found.'
-       # result = result_old
+      # result = result_old
   elif payload[1] == 0x4F:
     result = result_old
   else:
@@ -121,11 +106,11 @@ def decode(payload):
   return msg
 
 from array import array
-def encode(commands, device):
+def encode(cmd, device):
   def checksum(payload):
     cks = 0
     for i in range(9): cks += payload[i]
-    return ((cks%256^0xFF)+0x01)%0x100
+    return ((cks%0x100^0xFF)+0x01)%0x100
   def move(c):
     def parse_xy(x, y):
       def fix_num(num):
@@ -163,20 +148,27 @@ def encode(commands, device):
   prefix = device.prefix
   payload_tag = device.payload_tag
   payloads = []
-  # payload_slp = [0, 0x4F, 0, 0x04, 0xB0, 0, 0, 0, 0, 0xFD]
-  # Parse commands
-  commands = commands.replace(' ', '').replace('(', '').replace(')', '').split('+')
-  for command in commands:
-    c = command.split(',')
+  # Sleep commond (in milliseconds, range[0, 65535])
+  if 'SLP' in cmd:
+    t = int(cmd[4:-1])
+    payload = array('B', [0, 0])
+    payload[1] = t/0x100
+    payload[0] = t%0x100
+    payloads.append(array('B', payload))
+  elif 'RLS' in cmd:
+    pass
+  # Mouse movements and clicks
+  elif 'MOV' in cmd:
+    cs = cmd[4:-1].split(',')
     payload = array('B', [])
-    if len(c) == 1:
-      payload = buttons(c[0])
-    elif len(c) == 2:
-      payload = move(c)
-    elif len(c) == 3:
-      payload = buttons(c[2])
-      payload[4:7] = move(c[:2])[4:7]
-    if len(c) <= 3:
+    if len(cs) == 1:
+      payload = buttons(cs[0])
+    elif len(cs) == 2:
+      payload = move(cs)
+    elif len(cs) == 3:
+      payload = buttons(cs[2])
+      payload[4:7] = move(cs[:2])[4:7]
+    if len(cs) <= 3:
       payload[-1] = checksum(payload)
       payloads.append(payload)
       payloads.append(payload_tag)

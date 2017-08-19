@@ -1,5 +1,5 @@
 A tool set for sniffing devices and launching attacks with Crazyradio.
-Check [BastilleResearch](https://github.com/BastilleResearch/nrf-research-firmware.git "nrf-research-firmware") for more details.
+Based on [BastilleResearch](https://github.com/BastilleResearch/nrf-research-firmware.git "nrf-research-firmware")'s research.
 
 ### Setting Up
 Install additional modules
@@ -11,10 +11,10 @@ sudo pip install -U platformio
 ```
 
 ### Supported Devices
-| Device  | Sniff | Attack |
-| ----------------- | ----------------- | ----------------- |
-| AmazonBasics | Yes | Yes |
-| Logitech Mice | Yes | Yes |
+| Device  | Sniff | Attack | Details |
+| ----------------- | ----------------- | ----------------- | ----------------- |
+| AmazonBasics | Yes(unresponsive) | Yes | Mice control and HID Injection |
+| Logitech Mice | Yes | Yes | Mice control |
 
 
 ### How to Use
@@ -22,8 +22,21 @@ sudo pip install -U platformio
 sudo python app.py
 ```
 
-### Reference
-
+### How to Use Attack Injection
+```sh
+# Please check attacking rules in 'devices/*.py' for details
+# Further infomation will added to here once I have time
+# Attacking thread sleeps for 100 milliseconds
+<SLP(100)>
+# Move mouse by 100*100 and press Left, Right and Middle buttons
+<MOV(100,100,LMR)>
+# Send keystrokes to release all keys
+<RLS>
+# Send 'Windows + r' key combination
+<WIN+r>
+# Open Powershell and then open Caculator
+<RLS><WIN+r><RLS><SLP(500)><RLS>powershell<ENTER><RLS><SLP(500)><RLS>calc<ENTER><RLS>
+```
 
 License
 ----
