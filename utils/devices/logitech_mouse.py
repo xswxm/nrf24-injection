@@ -17,6 +17,7 @@ The following packets are captured from Logitech m215 & m545
   [D]scroll down:     00:C2:00:00:00:00:00:FF:00:3F + 00:4F:00:00:6E:00:00:00:00:43
   Other
   [ ]sleep:           00:4F:00:04:B0:00:00:00:00:FD
+  [ ]weak up:         00:4F:00:00:6E:00:00:00:00:43
   [ ]sync(sleep):     00:40:04:B0:0C
   [ ]sync(wake):      00:40:00:6E:52
   [ ]firmware info:   00:51:09:00:0B:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:9B

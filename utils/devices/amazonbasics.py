@@ -14,7 +14,7 @@ The following packets are captured from AmazonBasics
   [U]scroll up:     01:00:01:30:3C:2A
   [D]scroll down:   31:00:FF:30:3C:2A
   [ ]sync:          03:3C:2A
-  Movement                           bbbbbbbbbbbb 
+  Movement
   left:   02:FF:0F:00:3C:2A
   right:  32:01:00:00:3C:2A
   up:     32:00:F0:FF:3C:2A
@@ -126,8 +126,8 @@ def encode(cmd, device):
     payload[0] = t%0x100
     payloads.append(array('B', payload))
   elif 'RLS' in cmd:
-    payloads.append(array('B', [0]*24))
-    payloads.append(array('B', [0]*24))
+    payloads.append(array('B', [0x0F]*19+[0]*5))
+    payloads.append(array('B', [0x0F]*24))
   # Mouse movements and clicks
   elif 'MOV' in cmd:
     cs = cmd[4:-1].split(',')
@@ -190,6 +190,15 @@ key['ALT_R']    = array('B', [0, 0x40, 0, 0, 0])
 key['SUPER_R']  = array('B', [0, 0x80, 0, 0, 0])
 key['WIN_R']    = array('B', [0, 0x80, 0, 0, 0])
 
+# key['CTRL_L']   = array('B', [0, 0, 0, 0xE0, 0])
+# key['SHIFT_L']  = array('B', [0, 0, 0, 0xE1, 0])
+# key['ALT_L']    = array('B', [0, 0, 0, 0xE2, 0])
+# key['WIN_L']    = array('B', [0, 0, 0, 0xE3, 0])
+# key['CTRL_R']   = array('B', [0, 0, 0, 0xE4, 0])
+# key['SHIFT_R']  = array('B', [0, 0, 0, 0xE5, 0])
+# key['ALT_R']    = array('B', [0, 0, 0, 0xE6, 0])
+# key['WIN_R']    = array('B', [0, 0, 0, 0xE7, 0])
+
 key['a'] = array('B', [0, 0, 0, 0x04, 0])
 key['b'] = array('B', [0, 0, 0, 0x05, 0])
 key['c'] = array('B', [0, 0, 0, 0x06, 0])
@@ -228,7 +237,7 @@ key['9'] = array('B', [0, 0, 0, 0x26, 0])
 key['0'] = array('B', [0, 0, 0, 0x27, 0])
 key['LF'] = array('B', [0, 0, 0, 0x28, 0])
 key['ESC'] = array('B', [0, 0, 0, 0x29, 0])
-key['DEL'] = array('B', [0, 0, 0, 0x2A, 0])
+key['BS'] = array('B', [0, 0, 0, 0x2A, 0])
 key['TAB'] = array('B', [0, 0, 0, 0x2B, 0])
 key[' '] = array('B', [0, 0, 0, 0x2C, 0])
 key['-'] = array('B', [0, 0, 0, 0x2D, 0])
@@ -289,7 +298,7 @@ key['NUM_.'] = array('B', [0, 0, 0, 0x63, 0])
 # key['UNKNOWN'] = array('B', [0, 0, 0, 0x64, 0])
 key['MENU'] = array('B', [0, 0, 0, 0x65, 0])
 key['POWER'] = array('B', [0, 0, 0, 0x66, 0])
-key[''] = array('B', [0, 0, 0, 0x67, 0])
+key['NUM_='] = array('B', [0, 0, 0, 0x67, 0])
 # key['XF86Tools'] = array('B', [0, 0, 0, 0x68, 0])
 # key['NOT WOKING'] = array('B', [0, 0, 0, 0x69, 0])
 # key['XF86Launch6'] = array('B', [0, 0, 0, 0x6A, 0])
@@ -313,15 +322,22 @@ key['HELP'] = array('B', [0, 0, 0, 0x75, 0])
 # key['XF86Copy'] = array('B', [0, 0, 0, 0x7C, 0])
 # key['XF86Paste'] = array('B', [0, 0, 0, 0x7D, 0])
 # key['Find'] = array('B', [0, 0, 0, 0x7E, 0])
+key['EJECT'] = array('B', [0, 0, 0, 0xEC, 0])
 key['MUTE'] = array('B', [0, 0, 0, 0x7F, 0])
 key['VOLUP'] = array('B', [0, 0, 0, 0x80, 0])
 key['VOLDN'] = array('B', [0, 0, 0, 0x81, 0])
+# key['MUTE'] = array('B', [0, 0, 0, 0xF8, 0])
+# key['VOLUP'] = array('B', [0, 0, 0, 0xED, 0])
+# key['VOLDN'] = array('B', [0, 0, 0, 0xEE, 0])
 # key['KEYCODE: 248'] = array('B', [0, 0, 0, 0x82, 0])
 # key['KEYCODE: 130'] = array('B', [0, 0, 0, 0x90, 0])
 # key['KEYCODE: 248'] = array('B', [0, 0, 0, 0xA0, 0])
 # key['KEYCODE: 248'] = array('B', [0, 0, 0, 0xD0, 0])
 # key['CTRL_L'] = array('B', [0, 0, 0, 0xE0, 0])
-# key['OPEN BROWSER?'] = array('B', [0, 0, 0, 0xF0, 0])
+key['BROWSER'] = array('B', [0, 0, 0, 0xF0, 0])
+key['SLEEP'] = array('B', [0, 0, 0, 0xF8, 0])
+key['LOCK'] = array('B', [0, 0, 0, 0xF9, 0])
+key['CALC'] = array('B', [0, 0, 0, 0xFB, 0])
 
 key['A'] = array('B', [0, 0x02, 0, 0x04, 0])
 key['B'] = array('B', [0, 0x02, 0, 0x05, 0])
