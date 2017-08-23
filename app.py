@@ -83,6 +83,9 @@ def check_command(c):
             commands[-1] = command
             # Add an empty command to the commands list
             commands.append('')
+      # Switch tasks
+      else:
+        update_tasks()
       # Update commandsID
       commandsID = len(commands)-1
       # Renew command
@@ -105,6 +108,8 @@ def update_selection(command):
     save_commonds()
     # Join all threads
     global player, messager
+    # player.pause()
+    # messager.pause()
     player.join()
     messager.join()
     # Clear display
@@ -135,6 +140,7 @@ def update_tasks():
   if selection == None:
     return
   global task, player, messager
+  messager.pause()
   if task == 'scan':
     if selection > 0:
       # Update devices ang enter sniffing mode
@@ -192,5 +198,4 @@ if __name__ == "__main__":
   while True:
     c = display.stdscr.getch()
     check_command(c)
-    update_tasks()
     display.refresh()

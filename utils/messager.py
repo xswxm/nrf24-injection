@@ -70,6 +70,7 @@ class Messager(threading.Thread):
     self._stopevent = threading.Event()
     Messager._flag.set()
     self.task = task
+    self._pause = True
 
   # Main thread
   def run(self):
@@ -84,8 +85,10 @@ class Messager(threading.Thread):
       elif self.task == 'attack':
         attack()
       # Pause messager
+      self._pause = True
       Messager._flag.clear()
       Messager._flag.wait()
+      self._pause = False
 
   # Exit thread
   def join(self, timeout=None):
@@ -95,5 +98,6 @@ class Messager(threading.Thread):
       threading.Thread.join(self, timeout)
 
   # Stop thread
-  def stop(self):
-    Messager._flag.clear()
+  def pause(self):
+    while not self._pause:
+      time.sleep(0.05)

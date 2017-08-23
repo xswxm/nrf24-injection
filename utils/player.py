@@ -27,15 +27,14 @@ class Player(threading.Thread):
     Player.mode = mode
     self.prefix = prefix
     self.last_ping = time.time()
+    self._pause = True
 
   # Setup device
   # def setup(self, mode=Player.mode, prefix=Player.prefix):
   def setup(self, mode=0, prefix=array('B', [])):
-    # Stop messager
-    Messager._flag.clear()
-    # Stop current task
-    self.stop()
-    # Remew values
+    # Paues current task
+    self.pause()
+    # Reset values
     Player.mode = mode
     self.prefix = prefix
     Player.payloads = []
@@ -134,7 +133,7 @@ class Player(threading.Thread):
         if not Player._flag.isSet(): break
         time.sleep(0.025)
     # Stop if it has no payloads to to play
-    if Player.payloads == []: self.stop()
+    if Player.payloads == []: self._flag.clear()
 
   # Assign new commands and attack
   def assign(self, cmds):
@@ -163,7 +162,9 @@ class Player(threading.Thread):
         self.sniff()
       else:
         self.attack()
+      self._pause = True
       Player._flag.wait()
+      self._pause = False
 
   # Exit thread
   def join(self, timeout=None):
@@ -173,6 +174,7 @@ class Player(threading.Thread):
       threading.Thread.join(self, timeout)
 
   # Stop thread
-  def stop(self):
-    while Player._flag.isSet():
+  def pause(self):
+    while not self._pause:
       Player._flag.clear()
+      time.sleep(0.05)
