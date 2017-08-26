@@ -19,9 +19,8 @@ task = 'scan'
 selection = None      # Selection
 
 
-commands = ['A', 'B', 'C']
-commands.append('')
-commandsID = len(commands)
+commands = None
+commandsID = None
 
 
 def init_commands():
@@ -79,8 +78,6 @@ def check_command(c):
           # display.refresh()
           # Update commands if it is new
           if len(commands) < 2 or command != commands[-2]:
-            # Update the last command in commands
-            commands[-1] = command
             # Add an empty command to the commands list
             commands.append('')
       # Switch tasks
@@ -90,6 +87,9 @@ def check_command(c):
       commandsID = len(commands)-1
       # Renew command
       command = ''
+      # Update the last command in commands
+      commands[-1] = command
+      # Reset cureses
       stdscrID = 0
   elif 0 <= c < 256:
     command = command[:stdscrID]+chr(c)+command[stdscrID:]
@@ -172,13 +172,16 @@ def update_tasks():
 
 def test_devices():
   pass
-  from utils.device import Device, AmazonBasics
+  from utils.device import Device, AmazonBasics, LogitechMouse
   from array import array
   device = AmazonBasics(array('B', [0x61, 0x8E, 0x9C, 0xCD, 0x03]), [3], array('B', [0x3C, 0x2A]))
   # device = Device(array('B', [0x61, 0x8E, 0x9C, 0xCD, 0x03]), [3], [], 'Test')
   device.status = 'Test'
   config.devices.append(device)
   device = Device(array('B', [0x98, 0xA3, 0x24, 0x69, 0x07]), [62], [], 'Test')
+  device.status = 'Test'
+  config.devices.append(device)
+  device = LogitechMouse(array('B', [0x42, 0x66, 0x0A, 0xB1, 0x04]), [62], array('B', [0x00, 0xC2]), array('B', [0, 0x4F, 0, 0, 0x6E, 0, 0, 0, 0, 0x43]), 'Unencrypted')
   device.status = 'Test'
   config.devices.append(device)
 
