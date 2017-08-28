@@ -24,18 +24,19 @@ strict_match = None
 # Add a new device to the devices
 def add_device(address, channel, payload):
   def redo_scan(channel):
-    global channel_time
     from player import Player
-    # Pause Player correctly
-    while not Player._pause:
-      Player._flag.clear()
-    # Set channel
-    Player.channel = channel
-    common.radio.set_channel(channel)
-    # Set feature_ping to keep receiving payloads on this channel for few seconds
-    Player.feature_ping = Player.last_ping + common.timeout + channel_time
-    # Resume Player
-    Player._flag.set()
+    if Player.feature_ping < Player.last_ping:
+      global channel_time
+      # Pause Player correctly
+      while not Player._pause:
+        Player._flag.clear()
+      # Set channel
+      Player.channel = channel
+      common.radio.set_channel(channel)
+      # Set feature_ping to keep receiving payloads on this channel for few seconds
+      Player.feature_ping = Player.last_ping + common.timeout + channel_time
+      # Resume Player
+      Player._flag.set()
 
   global devices
   # Search in devices list
