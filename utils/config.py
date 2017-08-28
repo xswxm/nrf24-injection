@@ -13,8 +13,6 @@ from utils.device import *
 
 from lib import common
 
-import time
-
 command = ''
 devices = []
 deviceID = None
@@ -31,12 +29,11 @@ def add_device(address, channel, payload):
     # Pause Player correctly
     while not Player._pause:
       Player._flag.clear()
-      time.sleep(0.05)
     # Set channel
     Player.channel = channel
     common.radio.set_channel(channel)
     # Set feature_ping to keep receiving payloads on this channel for few seconds
-    Player.feature_ping = time.time() + common.timeout + channel_time
+    Player.feature_ping = Player.last_ping + common.timeout + channel_time
     # Resume Player
     Player._flag.set()
 
@@ -95,6 +92,7 @@ def update_device(address, channel, payload):
   # Update device's channels
   if channel not in device.channels:
     device.channels.append(channel)
+    device.channels.sort()
   # Update device's payloads if it satifies the following requirements
   if len(payload) > 0 and payload not in device.payloads:
     device.payloads.append(payload)

@@ -21,6 +21,7 @@ class Player(threading.Thread):
   channel_index = 0
   channel = common.channels[0]
   feature_ping = None
+  last_ping = time.time()
 
   # Constructor
   def __init__(self, mode=0, prefix=array('B', [])):
@@ -28,7 +29,6 @@ class Player(threading.Thread):
     self._stopevent = threading.Event()
     Player.mode = mode
     self.prefix = prefix
-    self.last_ping = time.time()
 
   # Setup device
   # def setup(self, mode=Player.mode, prefix=Player.prefix):
@@ -55,7 +55,7 @@ class Player(threading.Thread):
   def ping(self):
     success = True
     # Follow the target device if it changes channels
-    if time.time() - self.last_ping > common.timeout:
+    if time.time() - Player.last_ping > common.timeout:
       # First try pinging on the active channel
       if not common.radio.transmit_payload(common.ping_payload, common.ack_timeout, common.retries):
         # Ping failed on the active channel, so sweep through all available channels
@@ -66,7 +66,7 @@ class Player(threading.Thread):
           common.radio.set_channel(channel)
           if common.radio.transmit_payload(common.ping_payload, common.ack_timeout, common.retries):
             # Ping successful, exit out of the ping sweep
-            self.last_ping = time.time()
+            Player.last_ping = time.time()
             success = True
             Player.channel = channel
             break
@@ -76,24 +76,25 @@ class Player(threading.Thread):
             if common.radio.transmit_payload(common.ping_payload, common.ack_timeout, common.retries):
               # Add new channel to channels
               config.devices[config.deviceID].channels.append(channel)
+              config.devices[config.deviceID].channels.sort()
               # Ping successful, exit out of the ping sweep
-              self.last_ping = time.time()
+              Player.last_ping = time.time()
               success = True
               Player.channel = channel
               break
       # Ping succeeded on the active channel
       else:
-        self.last_ping = time.time()
+        Player.last_ping = time.time()
     return success
 
   # Scan devices
   def scan(self):
     # Increment the channel
-    if len(common.channels) > 1 and time.time() - self.last_ping > common.timeout and time.time() > Player.feature_ping:
+    if len(common.channels) > 1 and time.time() - Player.last_ping > common.timeout and time.time() > Player.feature_ping:
       Player.channel_index = (Player.channel_index + 1) % (len(common.channels))
       Player.channel = common.channels[Player.channel_index]
       common.radio.set_channel(Player.channel)
-      self.last_ping = time.time()
+      Player.last_ping = time.time()
     # Received payload
     value = common.radio.receive_payload()
     if len(value) >= 5:
@@ -107,7 +108,7 @@ class Player(threading.Thread):
       value = common.radio.receive_payload()
       if value[0] == 0:
         # Reset the channel timer
-        self.last_ping = time.time()
+        Player.last_ping = time.time()
         # Split the payload from the status byte and store the record
         self.add_record([Player.channel, value[1:]])
 

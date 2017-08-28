@@ -50,7 +50,6 @@ def tasks():
 
 
 def sniff():
-  device = config.devices[config.deviceID]
   # Update sniffing results and Display
   config.update_sniffer_msg()
 
