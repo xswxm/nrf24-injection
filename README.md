@@ -19,7 +19,12 @@ sudo pip install -U platformio
 
 ### How to Use
 ```sh
+# Run directly
 sudo python app.py
+# For Crazyradio PA users
+sudo python app.py -l
+# Check for help documents
+sudo python app.py -h
 ```
 
 ### How to Use Launch Attacks
@@ -28,6 +33,10 @@ sudo python app.py
 # Further infomation will added to here once I have time
 # Attacking thread sleeps for 100 milliseconds
 <SLP(100)>
+# Move mouse by 100*100 only
+<MOV(100,100)>
+# Press Left button only (Mouse)
+<MOV(L)>
 # Move mouse by 100*100 and press Left, Right and Middle buttons
 <MOV(100,100,LMR)>
 # Release the buttons for mice, you can send another MOV command without any buttons
@@ -39,7 +48,7 @@ sudo python app.py
 <WIN+r>
 # Send 'Ctrl + Alt + Delete' key combination
 <CTRL+ALT+DEL>
-# Open Powershell and then open Caculator form powershell with Windows computers
+# For Windows computers, the following commmand will open the Powershell and then open the Caculator
 <RLS><WIN+r><RLS><SLP(500)><RLS>powershell<ENTER><RLS><SLP(500)><RLS>calc<ENTER><RLS>
 ```
 

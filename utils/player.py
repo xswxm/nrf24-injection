@@ -14,11 +14,13 @@ from utils import config
 from array import array
 class Player(threading.Thread):
   _flag = threading.Event()
+  _pause = True
   mode = 0
   payloads = []
   records = []
   channel_index = 0
   channel = common.channels[0]
+  feature_ping = None
 
   # Constructor
   def __init__(self, mode=0, prefix=array('B', [])):
@@ -27,7 +29,6 @@ class Player(threading.Thread):
     Player.mode = mode
     self.prefix = prefix
     self.last_ping = time.time()
-    self._pause = True
 
   # Setup device
   # def setup(self, mode=Player.mode, prefix=Player.prefix):
@@ -44,6 +45,7 @@ class Player(threading.Thread):
     # Put the radio in sniffer mode (ESB w/o auto ACKs)
     if Player.mode == 0:
       common.radio.enter_promiscuous_mode(prefix_address)
+      # common.radio.enter_promiscuous_mode_generic(prefix_address, 2)
     else:
       common.radio.enter_sniffer_mode(prefix_address)
     Player._flag.set()
@@ -87,7 +89,7 @@ class Player(threading.Thread):
   # Scan devices
   def scan(self):
     # Increment the channel
-    if len(common.channels) > 1 and time.time() - self.last_ping > common.timeout:
+    if len(common.channels) > 1 and time.time() - self.last_ping > common.timeout and time.time() > Player.feature_ping:
       Player.channel_index = (Player.channel_index + 1) % (len(common.channels))
       Player.channel = common.channels[Player.channel_index]
       common.radio.set_channel(Player.channel)
@@ -96,7 +98,7 @@ class Player(threading.Thread):
     value = common.radio.receive_payload()
     if len(value) >= 5:
       # Split the address and payload and append them into the records
-      self.add_record([value[0:5], common.channels[Player.channel_index], value[5:]])
+      self.add_record([value[0:5], Player.channel, value[5:]])
 
   # Sniff packets
   def sniff(self):
@@ -111,7 +113,7 @@ class Player(threading.Thread):
 
   # Launch attacks or send payloads
   def attack(self):
-    # Send payload if ping is successful
+    # Send payload if ping was successful
     if self.ping():
       while Player.payloads != []:
         # Get a new payload
@@ -133,7 +135,7 @@ class Player(threading.Thread):
         if not Player._flag.isSet(): break
         time.sleep(0.025)
     # Stop if it has no payloads to to play
-    if Player.payloads == []: self._flag.clear()
+    if Player.payloads == []: Player._flag.clear()
 
   # Assign new commands and attack
   def assign(self, cmds):
@@ -162,9 +164,9 @@ class Player(threading.Thread):
         self.sniff()
       else:
         self.attack()
-      self._pause = True
+      Player._pause = True
       Player._flag.wait()
-      self._pause = False
+      Player._pause = False
 
   # Exit thread
   def join(self, timeout=None):
@@ -175,6 +177,6 @@ class Player(threading.Thread):
 
   # Stop thread
   def pause(self):
-    while not self._pause:
+    while not Player._pause:
       Player._flag.clear()
       time.sleep(0.05)

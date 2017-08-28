@@ -11,34 +11,62 @@ from array import array
 from utils import display
 from utils.device import *
 
+from lib import common
+
+import time
+
 command = ''
 devices = []
 deviceID = None
 menu = []
+channel_time = None
+strict_match = None
 
 
 # Add a new device to the devices
 def add_device(address, channel, payload):
+  def redo_scan(channel):
+    global channel_time
+    from player import Player
+    # Pause Player correctly
+    while not Player._pause:
+      Player._flag.clear()
+      time.sleep(0.05)
+    # Set channel
+    Player.channel = channel
+    common.radio.set_channel(channel)
+    # Set feature_ping to keep receiving payloads on this channel for few seconds
+    Player.feature_ping = time.time() + common.timeout + channel_time
+    # Resume Player
+    Player._flag.set()
+
   global devices
   # Search in devices list
-  for device in devices:
-    if address == device.address:
+  for i in range(len(devices)):
+    if address == devices[i].address:
       # Update device's channels
-      if channel not in device.channels:
-        device.channels.append(channel)
-      # Update device's payloads if it satifies the following requirements
-      if device.model == None and len(payload) > 0 and payload not in device.payloads:
-        device.payloads.append(payload)
+      if channel not in devices[i].channels:
+        devices[i].channels.append(channel)
+        devices[i].channels.sort()
+      # Update the device's payloads if it satifies the following requirements
+      if devices[i].model == None and len(payload) > 0 and payload not in devices[i].payloads:
+        devices[i].payloads.append(payload)
         # Update device
-        device = match_device(device.address, device.channels, device.payloads)
+        devices[i] = match_device(address, devices[i].channels, devices[i].payloads)
+      # Keep scanning on this channel to verify the device if the device was not recognized
+      if devices[i].model == None: redo_scan(channel)
       break
+
   # Add a new device to the devices
   else:
     payloads = []
     if len(payload) > 0: payloads.append(payload)
     devices.append(match_device(address, [channel], payloads))
+    # Found new device, keep scanning on this channel to verify the device
+    redo_scan(channel)
   # Display the scanned the result
   update_scanner_msg()
+
 
 def update_scanner_msg():
   global devices, menu
@@ -58,7 +86,6 @@ def update_scanner_msg():
       devices[i].status))
   # Refresh display
   display.refresh(msg)
-
 
 
 def update_device(address, channel, payload):

@@ -9,14 +9,15 @@ Blog: xswxm.com
 
 # The following modules will be referred by 'config.py' DO NOT REMOVE IT
 from utils.devices import amazonbasics, logitech_mouse
+import config
 
 class Device():
-  def __init__(self, address, channels, payloads, vendor=None, status=None):
+  def __init__(self, address, channels, payloads, vendor=None, model=None, status=None):
     self.address = address
     self.channels = channels
     self.payloads = payloads
     self.vendor = vendor
-    self.model = None
+    self.model = model
     self.status = status
 
 
@@ -24,7 +25,7 @@ class AmazonBasics():
   def __init__(self, address=None, channels=None, suffix=None):
     self.address = address
     self.vendor = 'AmazonBasics'
-    self.model = 'Mouse'
+    self.model = 'MG-0975'
     self.channels = channels
     self.suffix = suffix
     self.status = 'Unencrypted'
@@ -49,19 +50,23 @@ def match_amazonbasics(address, channels, payloads):
   count = 0
   limit = 3  # To ensure at least 2 packets share the same suffix
   def check_suffix(p, s, c):
+    success = False
     if s == None or s == p:
+      success = True
       c += 1
-      return p, c
+      return success, p, c
+    elif not config.strict_match:
+      return True, s, c
     else:
-      return s, 0
+      return success, s, c
   # Loop the payloads list to varify the format
   for payload in payloads:
     l = len(payload)
     # Example packet: [03:3C:2A]
     if l == 3:
       if payload[0] == 3:
-        suffix, count = check_suffix(payload[1:3], suffix, count)
-        if not count: break
+        success, suffix, count = check_suffix(payload[1:3], suffix, count)
+        if not success: break
       else:
         break
     # Example packet: [02:FD:EF:FF:3C:2A:29:E9]
@@ -70,13 +75,13 @@ def match_amazonbasics(address, channels, payloads):
       if payload[0]/0x10 <= 3 and payload[4] > 0 and payload[5] > 0:
         # Payload form mouse clicks, e.g.: [31:04:00:30:3C:2A]
         if payload[0]%0x10 == 1 and payload[1] <= 7:
-          suffix, count = check_suffix(payload[4:6], suffix, count)
-          if not count: break
+          success, suffix, count = check_suffix(payload[4:6], suffix, count)
+          if not success: break
         # Payload form mouse movement, e.g.: [02:FF:0F:00:3C:2A]
         elif payload[1]%0x10 == 2:
-          suffix, count = check_suffix(payload[4:6], suffix, count)
-          if not count: break
-      else:
+          success, suffix, count = check_suffix(payload[4:6], suffix, count)
+          if not success: break
+      elif config.strict_match:
         break
     if suffix != None and count >= limit:
       return AmazonBasics(address, channels, suffix)
@@ -89,16 +94,22 @@ def match_amazonbasics(address, channels, payloads):
 from array import array
 def match_logitech_mouse(address, channels, payloads):
   def checksum(payload):
+    if not config.strict_match: return payload[-1]
     cks = 0
     for p in payload[:-1]: cks += p
     return ((cks%0x100^0xFF)+0x01)%0x100
+
   def check_payload(p, s, c):
-    if s == None or  s == p:
+    success = False
+    if s == None or s == p:
+      success = True
       c += 1
-      return p, c
+      return success, p, c
+    elif not config.strict_match:
+      return True, s, c
     else:
-      return s, 0
-  
+      return success, s, c
+
   sync_flag = False
   prefix = None
   count_prefix = 0
@@ -120,15 +131,15 @@ def match_logitech_mouse(address, channels, payloads):
       if payload[:2] == array('B', [0x00, 0x40]):
         sync_flag = True
     # Payload from mouse clicks and movement
-    elif 10 <= l < 22 and payload[8] == 0:
+    elif l == 10 and payload[8] == 0:
       # Payload starting a event
       if payload[1] == 0xC2 and payload[2] < 0x20 and payload[3] == 0:
-        prefix, count_prefix = check_payload(payload[:2], prefix, count_prefix)
-        if count_prefix == 0: break
+        success, prefix, count_prefix = check_payload(payload[:2], prefix, count_prefix)
+        if not success: break
       # Payload ending a event
       elif payload[1] == 0x4F and payload[2] == payload[3] == 0:
-        payload_tag, count_tag = check_payload(payload[:10], payload_tag, count_tag)
-        if count_tag == 0: break
+        success, payload_tag, count_tag = check_payload(payload[:10], payload_tag, count_tag)
+        if not success: break
       # Payload entering sleep mode
       # elif payload[1] == 0x4F and payload[2] == 0 and payload[3] != 0:
       #   pass
@@ -146,15 +157,13 @@ def match_logitech_mouse(address, channels, payloads):
 
 def prematch_device(address, channels, payloads):
   ls = []
-  vendor = None
-  status = None
   for payload in payloads:
     l = len(payload)
-    if l in [3, 6, 24]: vendor = 'Chicony?'
-    elif l in [5, 10, 22]: vendor = 'Logitech?'
+    # if l in [3, 6, 24]: vendor = 'Chicony?'
+    # elif l in [5, 10, 22]: vendor = 'Logitech?'
     if l not in ls: ls.append(l)
-  status = ','.join(str(l) for l in sorted(ls))
-  return Device(address, channels, payloads, vendor, status)
+  vendor = len(ls) > 0 and ','.join(str(l) for l in sorted(ls)) or None
+  return Device(address, channels, payloads, vendor, None, 'Verifying')
 
 def match_device(address, channels, payloads):
   device = None

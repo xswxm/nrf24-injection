@@ -5,6 +5,8 @@
 
 from lib import common
 common.init_args('./app.py')
+common.parser.add_argument('-e', '--channel_time', type=int, help='Time in milliseconds for keeping scanning on the channel where a new device was discovered', default=8)
+common.parser.add_argument('-s', '--strict_match', action='store_true', help='Verify device with more strict rules', default=False)
 common.parse_and_init()
 
 import curses
@@ -17,7 +19,8 @@ from utils import config
 display.init()
 task = 'scan'
 selection = None      # Selection
-
+config.channel_time = common.args.channel_time
+config.strict_match = common.args.strict_match
 
 commands = None
 commandsID = None
@@ -78,6 +81,8 @@ def check_command(c):
           # display.refresh()
           # Update commands if it is new
           if len(commands) < 2 or command != commands[-2]:
+            # Update the last command in commands
+            commands[-1] = command
             # Add an empty command to the commands list
             commands.append('')
       # Switch tasks
@@ -88,7 +93,7 @@ def check_command(c):
       # Renew command
       command = ''
       # Update the last command in commands
-      commands[-1] = command
+      commands[-1] = ''
       # Reset cureses
       stdscrID = 0
   elif 0 <= c < 256:
@@ -174,6 +179,9 @@ def test_devices():
   pass
   from utils.device import Device, AmazonBasics, LogitechMouse
   from array import array
+  device = Device(array('B', [0x29, 0xA7, 0x95, 0xCC, 0x09]), [5], [array('B',[0x01, 0x23, 0x45])], 'Test')
+  device.status = 'Test'
+  config.devices.append(device)
   device = AmazonBasics(array('B', [0x61, 0x8E, 0x9C, 0xCD, 0x03]), [3], array('B', [0x3C, 0x2A]))
   # device = Device(array('B', [0x61, 0x8E, 0x9C, 0xCD, 0x03]), [3], [], 'Test')
   device.status = 'Test'
