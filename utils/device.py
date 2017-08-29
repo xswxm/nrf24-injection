@@ -48,7 +48,7 @@ class LogitechMouse():
 def match_amazonbasics(address, channels, payloads):
   suffix = None
   count = 0
-  limit = 3  # To ensure at least 2 packets share the same suffix
+  limit = 3  # To ensure at least 3 packets share the same suffix
   def check_suffix(p, s, c):
     success = False
     if s == None or s == p:
@@ -119,7 +119,17 @@ def match_logitech_mouse(address, channels, payloads):
   tag_limit  = 1     # To ensure at least 1 packets share the same payload_tag
 
   # Justify device's status by checking the last byte of the address
-  status = address[4] == 0 and 'Unpluged' or 'Unencrypted'
+  # status = address[4] == 0 and 'Unpluged' or 'Unencrypted'
+  if address[4] == 0:
+    status = 'Unpluged'
+    # Experimental
+    prefix_limit = 2
+    sync_flag = True
+    payload_tag = array('B', [0, 0x4F, 0, 0, 0x6E, 0, 0, 0, 0, 0x43])
+    count_tag = tag_limit
+  else:
+    status = 'Unencrypted'
+
   for payload in payloads:
     # Checksum to varify if it is a payload from logitech
     # Comment it if you are worried about the performance
@@ -148,6 +158,7 @@ def match_logitech_mouse(address, channels, payloads):
     #   pass
     # Ruturn None if the packet does mathch the length 3 or 6
     if prefix != None and payload_tag != None and count_prefix >= prefix_limit and count_tag >= tag_limit and sync_flag:
+      if address[4] == 0: status += '[{:02X}]'.format(prefix[0])
       return LogitechMouse(address, channels, prefix, payload_tag, status)
   # else:
   #   # Not found

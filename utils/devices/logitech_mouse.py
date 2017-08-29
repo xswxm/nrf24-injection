@@ -60,7 +60,7 @@ def decode(payload):
       result[5] = None
       result[8] = 'Yes'
     else:
-      result[0] = 'No Matching decoder found.'
+      result[0] = 'Payload cannot be decoded.'
       # result = result_old
   elif payload[1] == 0x4F:
     result = result_old

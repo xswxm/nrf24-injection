@@ -23,8 +23,8 @@ strict_match = None
 
 # Add a new device to the devices
 def add_device(address, channel, payload):
+  from player import Player
   def redo_scan(channel):
-    from player import Player
     if Player.feature_ping < Player.last_ping:
       global channel_time
       # Pause Player correctly
@@ -51,8 +51,11 @@ def add_device(address, channel, payload):
         devices[i].payloads.append(payload)
         # Update device
         devices[i] = match_device(address, devices[i].channels, devices[i].payloads)
-      # Keep scanning on this channel to verify the device if the device was not recognized
-      if devices[i].model == None: redo_scan(channel)
+        # Keep scanning on this channel to verify the device if the device was not recognized
+        if devices[i].model == None:
+          redo_scan(channel)
+        else:
+          Player.feature_ping = Player.last_ping
       break
 
   # Add a new device to the devices
