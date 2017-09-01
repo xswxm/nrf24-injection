@@ -1,6 +1,12 @@
 #!/usr/bin/env python2
 '''
+Author: xswxm
+Blog: xswxm.com
 
+This script is associated with the display. Its tasks include:
+1. Initialize the screen;
+2. End the screen;
+3. Display messages on the screen.
 '''
 
 import sys

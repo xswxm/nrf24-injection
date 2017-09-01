@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 # 
 '''
-Github: xswxm
+Author: xswxm
 Blog: xswxm.com
 
 The following packets are captured from Logitech m215 & m545
@@ -22,10 +22,12 @@ The following packets are captured from Logitech m215 & m545
   [ ]sync(wake):      00:40:00:6E:52
   [ ]firmware info:   00:51:09:00:0B:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:9B
   Movement
-  left:   00:C2:00:00:FF:0F:00:00:00:30
-  right:  00:C2:00:00:01:00:00:00:00:3D
-  up:     00:C2:00:00:00:F0:FF:00:00:4F
-  down:   00:C2:00:00:00:10:00:00:00:2E
+  left:               00:C2:00:00:FF:0F:00:00:00:30
+  right:              00:C2:00:00:01:00:00:00:00:3D
+  up:                 00:C2:00:00:00:F0:FF:00:00:4F
+  down:               00:C2:00:00:00:10:00:00:00:2E
+
+Channels:             5, 8, 14, 17, 32, 35, 41, 44, 62, 65, 71, 74
 
 Packet explaination
   Packet: AB:CD:EF:GH:IJ:KL:MO:PQ:RS:TU

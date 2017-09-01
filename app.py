@@ -1,6 +1,14 @@
 #!/usr/bin/env python2
 '''
-  Reference: http://www.ipsum-generator.com
+Author: xswxm
+Blog: xswxm.com
+
+Main entrance for our nrf24-injection scripts.
+
+This script can do the following tasks:
+1. Search and analyze 2.4Ghz mice/keyboards;
+2. Sniff payloads;
+3. Launch attack, including keystroke injections.
 '''
 
 from lib import common

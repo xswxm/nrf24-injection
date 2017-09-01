@@ -1,6 +1,11 @@
 #!/usr/bin/env python2
 '''
-  Reference: http://www.ipsum-generator.com
+Author: xswxm
+Blog: xswxm.com
+
+This script will analyze the paylods/tasks assigned by the messager.py 
+and output the result to display.py.
+It also stores most parameters, which are shared between different classes and scripts.
 '''
 
 import sys

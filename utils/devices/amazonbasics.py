@@ -5,7 +5,7 @@
 Github: xswxm
 Blog: xswxm.com
 
-The following packets are captured from AmazonBasics
+The following packets are captured from AmazonBasics MG-0975
   Buttons
   [X]release:       31:00:00:30:3C:2A 
   [L]left:          01:01:00:30:3C:2A
@@ -15,10 +15,13 @@ The following packets are captured from AmazonBasics
   [D]scroll down:   31:00:FF:30:3C:2A
   [ ]sync:          03:3C:2A
   Movement
-  left:   02:FF:0F:00:3C:2A
-  right:  32:01:00:00:3C:2A
-  up:     32:00:F0:FF:3C:2A
-  down:   32:00:10:00:3C:2A
+  left:             02:FF:0F:00:3C:2A
+  right:            32:01:00:00:3C:2A
+  up:               32:00:F0:FF:3C:2A
+  down:             32:00:10:00:3C:2A
+
+Channels(Gengral):  3, 8, 20, 62, 74, 79
+Other channels:     21, 48, 52
 
 Packet explaination
   Packet: AB:CD:EF:GH:IJ:KL

@@ -1,7 +1,12 @@
 #!/usr/bin/env python2
 '''
+Author: xswxm
+Blog: xswxm.com
 
+This script includes a class, which is responsible for scanning, sniffing, and attacking devices.
+It is a key component of the whole scripts.
 '''
+
 import sys
 sys.path.append("..")
 

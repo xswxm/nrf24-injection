@@ -5,6 +5,8 @@
 Github: xswxm
 Blog: xswxm.com
 
+This script provides classes for different devices.
+It also includes the algorithms/functions to recognize different devices.
 '''
 
 # The following modules will be referred by 'config.py' DO NOT REMOVE IT

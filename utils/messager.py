@@ -1,7 +1,12 @@
 #!/usr/bin/env python2
 '''
+Author: xswxm
+Blog: xswxm.com
 
+This script will received the payloads from the player and pre-analyze them, 
+then assigned new tasks to the config.py to further process them.
 '''
+
 import sys
 sys.path.append("..")
 
