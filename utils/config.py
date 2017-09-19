@@ -192,22 +192,23 @@ def update_sniffer_msg():
   display.refresh(msg)
 
 # The following method also has to been optimised 
-def update_attacker_msg():
+def update_attacker_msg(ping_rate=0):
   global menu, devices, deviceID
   device = devices[deviceID]
   menu = []
   msg = []
   msg.append('----------------------------------LAUNCH ATTACK---------------------------------')
-  msg.append('{0:<10}{1} {2}'.format('Device: ', device.vendor, device.model))
-  msg.append('{0:<10}{1}'.format('Address: ', ':'.join('{:02X}'.format(b) for b in device.address)))
-  msg.append('{0:<10}{1}'.format('Channels: ', ', '.join(str(c) for c in device.channels)))
+  msg.append('{0:<9}{1} {2} {3}'.format('Device', ':', device.vendor, device.model))
+  msg.append('{0:<9}{1} {2}'.format('Address', ':', ':'.join('{:02X}'.format(b) for b in device.address)))
+  msg.append('{0:<9}{1} {2}'.format('Channels', ':', ', '.join(str(c) for c in device.channels)))
   from player import Player
   status = len(Player.payloads) > 0 and 'Attacking...' or 'No attack request found.'
-  msg.append('{0:<10}{1}'.format('Status: ', status))
+  msg.append('{0:<9}{1} {2}'.format('Status', ':', status))
+  # Refresh ping rate
+  msg.append('{0:<9}{1} {2:<4}{3}'.format('Ping rate', ':', int(ping_rate), 'pks/s'))
   msg.append('')
   msg.append('----------------------------------ATTACK HISTORY--------------------------------')
   msg.append('{0:<5}{1:<4}{2}'.format('No.', 'Ch.', 'Payload'))
-  from player import Player
   l = len(Player.records)
   ls = l > 10 and l-10 or 0
   for i in range(ls, l):

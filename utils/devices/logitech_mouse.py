@@ -27,7 +27,9 @@ The following packets are captured from Logitech m215 & m545
   up:                 00:C2:00:00:00:F0:FF:00:00:4F
   down:               00:C2:00:00:00:10:00:00:00:2E
 
-Channels:             5, 8, 14, 17, 32, 35, 41, 44, 62, 65, 71, 74
+
+M215/M238 Channels:   5, 8, 14, 17, 32, 35, 41, 44, 62, 65, 71, 74
+M545 Channels (ID 046d:c52b Logitech, Inc. Unifying Receiver):        3, 8, 20, 62, 74, 79
 
 Packet explaination
   Packet: AB:CD:EF:GH:IJ:KL:MO:PQ:RS:TU
@@ -157,6 +159,10 @@ def encode(cmd, device):
     payload = array('B', [0, 0])
     payload[1] = t/0x100
     payload[0] = t%0x100
+    payloads.append(array('B', payload))
+  elif 'PING' in cmd:
+    t = int(cmd[5:-1])
+    payload = array('B', [t%0x100])
     payloads.append(array('B', payload))
   elif 'RLS' in cmd:
     pass

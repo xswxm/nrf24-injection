@@ -27,7 +27,8 @@ class Player(threading.Thread):
   channel = common.channels[0]
   feature_ping = None
   last_ping = time.time()
-
+  total_ping = 0
+  
   # Constructor
   def __init__(self, mode=0, prefix=array('B', [])):
     threading.Thread.__init__(self)
@@ -53,6 +54,10 @@ class Player(threading.Thread):
       # common.radio.enter_promiscuous_mode_generic(prefix_address, 2)
     else:
       common.radio.enter_sniffer_mode(prefix_address)
+      Player.channel = config.devices[config.deviceID].channels[-1]
+      common.radio.set_channel(Player.channel)
+    Player.total_ping = 0
+    Messager.total_pings = [0]*10
     Player._flag.set()
     Messager._flag.set()
 
@@ -92,6 +97,25 @@ class Player(threading.Thread):
         Player.last_ping = time.time()
     return success
 
+# Ping address with given channel, retries
+  def ping_channel(self, channel, retries=8):
+    success = False
+    common.radio.set_channel(channel)
+    if common.radio.transmit_payload(common.ping_payload, common.ack_timeout, retries):
+      # Add new channel to channels
+      if not channel in config.devices[config.deviceID].channels:
+        config.devices[config.deviceID].channels.append(channel)
+        config.devices[config.deviceID].channels.sort()
+      # Ping successful, exit out of the ping sweep
+      Player.last_ping = time.time()
+      success = True
+      Player.channel = channel
+    else:
+      # Reverse channel settings
+      common.radio.set_channel(Player.channel)
+    return success
+
+
   # Scan devices
   def scan(self):
     # Increment the channel
@@ -126,7 +150,14 @@ class Player(threading.Thread):
         payload = Player.payloads[0]
         del Player.payloads[0]
         # Get system payloads, such as pause this thread for few seconds
-        if len(payload) == 2:
+        if len(payload) == 1:
+          channel = payload[0]
+          if self.ping_channel(channel):
+            self.add_record(['SYS', 'Set channel {0} succeeded!'.format(channel)])
+          else:
+            self.add_record(['SYS', 'Set channel {0} failed!'.format(channel)])
+          break
+        elif len(payload) == 2:
           t = payload[0]+payload[1]*0x100
           self.add_record(['SYS', 'Sleep for {0} milliseconds'.format(t)])
           time.sleep(float(t)/1000)
@@ -141,7 +172,14 @@ class Player(threading.Thread):
         if not Player._flag.isSet(): break
         time.sleep(0.025)
     # Stop if it has no payloads to to play
-    if Player.payloads == []: Player._flag.clear()
+    # if Player.payloads == []: Player._flag.clear()
+
+  # Launch attacks or send payloads
+  def compute_ping_rate(self, timeout=0, retries=0):
+    # Send payload if ping was successful
+    if common.radio.transmit_payload(common.ping_payload, timeout, retries):
+      Player.total_ping += 1
+    Messager._flag.set()
 
   # Assign new commands and attack
   def assign(self, cmds):
@@ -168,8 +206,10 @@ class Player(threading.Thread):
         self.scan()
       elif Player.mode == 1:
         self.sniff()
-      else:
+      elif Player.payloads != []:
         self.attack()
+      else:
+        self.compute_ping_rate()
       Player._pause = True
       Player._flag.wait()
       Player._pause = False

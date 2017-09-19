@@ -128,6 +128,10 @@ def encode(cmd, device):
     payload[1] = t/0x100
     payload[0] = t%0x100
     payloads.append(array('B', payload))
+  elif 'PING' in cmd:
+    t = int(cmd[5:-1])
+    payload = array('B', [t%0x100])
+    payloads.append(array('B', payload))
   elif 'RLS' in cmd:
     payloads.append(array('B', [0x0F]*19+[0]*5))
     payloads.append(array('B', [0x0F]*24))

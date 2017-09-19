@@ -61,13 +61,26 @@ def sniff():
 
 def attack():
   # Update attacking results and Display
-  config.update_attacker_msg()
-
+  from player import Player
+  time_now = time.time()
+  time_span = time_now-Messager.time_flag
+  # Compute ping_rate
+  if Player.payloads == [] and time_span>=1:
+    Messager.ping_rate = Player.total_ping-Messager.total_ping
+    Messager.total_ping = Player.total_ping
+    Messager.ping_rate = Messager.ping_rate/time_span
+    Messager.time_flag = time_now
+    config.update_attacker_msg(Messager.ping_rate)
+  elif Player.payloads != []:
+    config.update_attacker_msg(Messager.ping_rate)
 
 
 class Messager(threading.Thread):
   # Constructor
   _flag = threading.Event()
+  total_ping = 0
+  ping_rate = 0
+  time_flag = time.time()
 
   def __init__(self, task='scan'):
     threading.Thread.__init__(self)

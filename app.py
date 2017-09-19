@@ -111,6 +111,18 @@ def check_command(c):
   config.command = command
   display.stdscrID = stdscrID
 
+def quit_app():
+  save_commonds()
+  # Join all threads
+  global player, messager
+  # player.pause()
+  # messager.pause()
+  player.join()
+  messager.join()
+  # Clear display
+  display.end()
+  # Exit
+  exit(0)
 
 def update_selection(command):
   global selection
@@ -118,17 +130,7 @@ def update_selection(command):
   # c = ord(command[-1])
   # Quit application
   if command[-1] == 'q':
-    save_commonds()
-    # Join all threads
-    global player, messager
-    # player.pause()
-    # messager.pause()
-    player.join()
-    messager.join()
-    # Clear display
-    display.end()
-    # Exit
-    exit(0)
+    quit_app()
   # Back
   if command[-1] == 'b':
     selection = -1
@@ -214,7 +216,10 @@ if __name__ == "__main__":
   messager.start()
   player = Player()
   player.start()
-  while True:
-    c = display.stdscr.getch()
-    check_command(c)
-    display.refresh()
+  try:
+    while True:
+      c = display.stdscr.getch()
+      check_command(c)
+      display.refresh()
+  except KeyboardInterrupt:
+    quit_app()
