@@ -33,7 +33,7 @@ M545 Channels (ID 046d:c52b Logitech, Inc. Unifying Receiver):        3, 8, 20, 
 
 Packet explaination
   Packet: AB:CD:EF:GH:IJ:KL:MO:PQ:RS:TU
-  ABCD:   prefix numbers. Usually, they are 00:C2, whe the device is not un-pluged, AB could be larger then 0
+  ABCD:   prefix numbers. Usually, they are 00:C2, when the device is un-pluged, AB could 00
   EF:     stand for different buttons
   PQ:     stand for srollings
   IJKLMO: stand for relative mouse movement
